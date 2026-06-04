@@ -8,4 +8,8 @@ consumers:
     chart: custody
     envs:
       - path: envs/dev/custody/values.yaml
-  # finora-sto entry will be added once finora-sto-gitops is created.
+  - repo: must-stonex/finora-sto-gitops
+    chart: finora-sto
+    envs:
+      - path: envs/dev/values.yaml
+      - path: envs/prod/values.yaml
