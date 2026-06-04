@@ -1,0 +1,50 @@
+global:
+  ecrRegistry: ""
+  esoSecretName: ""
+  esoRoleArn: ""
+  awsRegion: "ap-northeast-2"
+  domain: ""
+  acmCertificateArn: ""
+
+# Pod-level security context applied to all pods (can be overridden per service via podSecurityContext)
+securityContext:
+  pod: {}
+  container: {}
+
+serviceAccount:
+  create: true
+  name: ""
+
+services: {}
+
+ingress:
+  enabled: false
+  className: alb
+  annotations: {}
+  rules: []
+
+externalSecret:
+  enabled: false
+  refreshInterval: "30s"
+  secretStoreName: "custody-secret-store"
+  targetSecretName: "custody-secrets"
+
+secretStore:
+  enabled: false
+  name: "custody-secret-store"
+
+networkPolicy:
+  enabled: false
+  ingressControllerNamespace: "kube-system"
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+migration:
+  envFrom: []
+
+monitoring:
+  enabled: false
+  metricsPath: /metrics
+  scrapeInterval: 30s

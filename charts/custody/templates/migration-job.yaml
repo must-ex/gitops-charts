@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "custody.name" . }}-migrate
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "custody.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "custody.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "custody.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.securityContext.pod | nindent 8 }}
+      containers:
+        - name: migrate
+          image: "{{ (index .Values.services "custody-core").image.repository }}:{{ (index .Values.services "custody-core").image.tag }}"
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            {{- toYaml .Values.securityContext.container | nindent 12 }}
+          command:
+            - python
+            - manage.py
+            - migrate
+            - --noinput
+          {{- if .Values.migration.envFrom }}
+          envFrom:
+            {{- toYaml .Values.migration.envFrom | nindent 12 }}
+          {{- end }}
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
