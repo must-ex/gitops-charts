@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
@@ -24,13 +26,22 @@ jobs:
       - name: Detect changed charts
         id: charts
         run: |
-          if [ -d charts ]; then
-            CHARTS=$(ls -d charts/*/ 2>/dev/null | sed 's|/$||' | tr '\n' ' ')
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
           else
-            CHARTS=""
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
           fi
-          echo "list=$CHARTS" >> $GITHUB_OUTPUT
-          echo "Charts to validate: $CHARTS"
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD" -- 'charts/*' | awk -F/ 'NF>=2 {print "charts/"$2}' | sort -u | tr '\n' ' ')
+          # Filter to actual existing chart directories (drop deleted)
+          KEEP=""
+          for c in $CHANGED; do
+            if [ -d "$c" ]; then KEEP="$KEEP $c"; fi
+          done
+          KEEP=$(echo "$KEEP" | sed 's/^ //')
+          echo "list=$KEEP" >> $GITHUB_OUTPUT
+          echo "Changed charts to validate: $KEEP"
 
       - name: helm lint
         if: steps.charts.outputs.list != ''
