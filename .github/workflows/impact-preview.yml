@@ -1,0 +1,127 @@
+name: impact-preview
+
+on:
+  pull_request:
+    paths:
+      - 'charts/**'
+      - 'consumers.yaml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  load-consumers:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.load.outputs.matrix }}
+      has_consumers: ${{ steps.load.outputs.has_consumers }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load consumers.yaml into matrix
+        id: load
+        run: |
+          if [ ! -f consumers.yaml ]; then
+            echo "has_consumers=false" >> $GITHUB_OUTPUT
+            echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Flatten consumers × envs into matrix entries
+          MATRIX=$(python3 <<'PY'
+          import json, yaml, sys, pathlib
+          data = yaml.safe_load(pathlib.Path('consumers.yaml').read_text()) or {}
+          consumers = data.get('consumers') or []
+          out = []
+          for c in consumers:
+              for env in c.get('envs', []):
+                  out.append({
+                      'repo': c['repo'],
+                      'chart': c['chart'],
+                      'values_path': env['path'],
+                      'label': f"{c['repo']}@{env['path']}",
+                  })
+          print(json.dumps({'include': out}))
+          PY
+          )
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          if [ "$(echo "$MATRIX" | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["include"]))')" = "0" ]; then
+            echo "has_consumers=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_consumers=true" >> $GITHUB_OUTPUT
+          fi
+
+  preview:
+    needs: load-consumers
+    if: needs.load-consumers.outputs.has_consumers == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.load-consumers.outputs.matrix) }}
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          path: pr
+
+      - name: Checkout main (baseline)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.0
+
+      - name: Checkout consumer repo
+        run: |
+          git clone --depth 1 "https://github.com/${{ matrix.repo }}.git" consumer
+
+      - name: Render baseline
+        run: |
+          if [ -d "baseline/charts/${{ matrix.chart }}" ]; then
+            helm template preview "baseline/charts/${{ matrix.chart }}" \
+              -f "consumer/${{ matrix.values_path }}" \
+              > /tmp/before.yaml 2> /tmp/before.err || true
+          else
+            echo "# chart did not exist in baseline" > /tmp/before.yaml
+          fi
+
+      - name: Render PR
+        run: |
+          helm template preview "pr/charts/${{ matrix.chart }}" \
+            -f "consumer/${{ matrix.values_path }}" \
+            > /tmp/after.yaml 2> /tmp/after.err
+
+      - name: Diff
+        id: diff
+        run: |
+          if diff -u /tmp/before.yaml /tmp/after.yaml > /tmp/diff.txt; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+          # truncate if too long
+          head -c 60000 /tmp/diff.txt > /tmp/diff_trunc.txt
+
+      - name: Comment PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: impact-${{ matrix.label }}
+          message: |
+            ### impact-preview — `${{ matrix.label }}`
+
+            chart: `${{ matrix.chart }}`
+            consumer values: `${{ matrix.repo }}:${{ matrix.values_path }}`
+            changed: **${{ steps.diff.outputs.changed }}**
+
+            <details><summary>diff (truncated to 60KB)</summary>
+
+            ```diff
+            $(cat /tmp/diff_trunc.txt)
+            ```
+
+            </details>

@@ -1,0 +1,8 @@
+# Default owners: DevOps team
+* @strider8796
+
+# Charts ownership — DevOps team reviews all chart changes
+/charts/ @strider8796
+
+# CI/workflow changes need DevOps review
+/.github/ @strider8796

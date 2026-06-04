@@ -1,0 +1,16 @@
+# Registry of product gitops repos that consume charts in this repo.
+# Used by .github/workflows/impact-preview.yml to render diffs on chart PRs.
+#
+# Add a new entry when a new product onboards.
+
+consumers: []
+  # Example shape (to be populated as products migrate):
+  # - repo: must-custody/custody-gitops
+  #   chart: custody
+  #   envs:
+  #     - path: envs/dev/custody/values.yaml
+  # - repo: must-stonex/finora-sto-gitops
+  #   chart: finora-sto
+  #   envs:
+  #     - path: envs/dev/values.yaml
+  #     - path: envs/prod/values.yaml

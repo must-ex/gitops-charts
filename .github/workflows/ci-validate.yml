@@ -1,0 +1,68 @@
+name: ci-validate
+
+on:
+  pull_request:
+    paths:
+      - 'charts/**'
+      - '.github/workflows/ci-validate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'charts/**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.0
+
+      - name: Detect changed charts
+        id: charts
+        run: |
+          if [ -d charts ]; then
+            CHARTS=$(ls -d charts/*/ 2>/dev/null | sed 's|/$||' | tr '\n' ' ')
+          else
+            CHARTS=""
+          fi
+          echo "list=$CHARTS" >> $GITHUB_OUTPUT
+          echo "Charts to validate: $CHARTS"
+
+      - name: helm lint
+        if: steps.charts.outputs.list != ''
+        run: |
+          for chart in ${{ steps.charts.outputs.list }}; do
+            echo "::group::helm lint $chart"
+            helm lint "$chart"
+            echo "::endgroup::"
+          done
+
+      - name: helm template (smoke render with default values)
+        if: steps.charts.outputs.list != ''
+        run: |
+          for chart in ${{ steps.charts.outputs.list }}; do
+            echo "::group::helm template $chart"
+            helm template test-release "$chart" > /tmp/manifest.yaml
+            echo "::endgroup::"
+          done
+
+      - name: Install kubeconform
+        if: steps.charts.outputs.list != ''
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+            | tar xz -C /tmp
+          sudo mv /tmp/kubeconform /usr/local/bin/
+
+      - name: kubeconform schema validation
+        if: steps.charts.outputs.list != ''
+        run: |
+          for chart in ${{ steps.charts.outputs.list }}; do
+            echo "::group::kubeconform $chart"
+            helm template test-release "$chart" \
+              | kubeconform -strict -ignore-missing-schemas -summary
+            echo "::endgroup::"
+          done
