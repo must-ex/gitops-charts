@@ -77,10 +77,32 @@ jobs:
           version: v3.16.0
 
       - name: Checkout consumer repo
+        id: clone
+        continue-on-error: true
         run: |
-          git clone --depth 1 "https://github.com/${{ matrix.repo }}.git" consumer
+          # GITHUB_TOKEN works for same-org repos; cross-org private repos need a PAT/App secret named CONSUMER_READ_TOKEN.
+          TOKEN="${{ secrets.CONSUMER_READ_TOKEN }}"
+          if [ -z "$TOKEN" ]; then TOKEN="${{ github.token }}"; fi
+          if git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/${{ matrix.repo }}.git" consumer 2>/dev/null; then
+            echo "ok=true" >> $GITHUB_OUTPUT
+          else
+            echo "ok=false" >> $GITHUB_OUTPUT
+            echo "Unable to clone ${{ matrix.repo }} — likely private cross-org repo without CONSUMER_READ_TOKEN."
+          fi
+
+      - name: Skip diff (consumer unreachable)
+        if: steps.clone.outputs.ok != 'true'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: impact-${{ matrix.label }}
+          message: |
+            ### impact-preview — `${{ matrix.label }}` — skipped
+
+            Could not read consumer repo `${{ matrix.repo }}`. This is likely a private cross-org repo. To enable diff:
+            set `CONSUMER_READ_TOKEN` repo/org secret (PAT or GitHub App installation token with `contents:read` on the consumer repo).
 
       - name: Render baseline
+        if: steps.clone.outputs.ok == 'true'
         run: |
           if [ -d "baseline/charts/${{ matrix.chart }}" ]; then
             helm template preview "baseline/charts/${{ matrix.chart }}" \
@@ -91,12 +113,14 @@ jobs:
           fi
 
       - name: Render PR
+        if: steps.clone.outputs.ok == 'true'
         run: |
           helm template preview "pr/charts/${{ matrix.chart }}" \
             -f "consumer/${{ matrix.values_path }}" \
             > /tmp/after.yaml 2> /tmp/after.err
 
       - name: Diff
+        if: steps.clone.outputs.ok == 'true'
         id: diff
         run: |
           if diff -u /tmp/before.yaml /tmp/after.yaml > /tmp/diff.txt; then
@@ -108,6 +132,7 @@ jobs:
           head -c 60000 /tmp/diff.txt > /tmp/diff_trunc.txt
 
       - name: Comment PR
+        if: steps.clone.outputs.ok == 'true'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: impact-${{ matrix.label }}
