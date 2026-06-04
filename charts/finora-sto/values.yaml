@@ -1,0 +1,85 @@
+global:
+  ecrRegistry: ""
+  esoSecretName: ""
+  esoRoleArn: ""
+  awsRegion: "ap-northeast-2"
+  domain: ""
+  acmCertificateArn: ""
+
+# Pod-level security context applied to all pods.
+# Override per service via services.<name>.podSecurityContext / .securityContext.
+securityContext:
+  pod: {}
+  container: {}
+
+# Chart-level ServiceAccount. STO typically uses per-service SAs (services.<n>.serviceAccount) instead,
+# so this is opt-in (set create: false unless a shared SA is needed).
+serviceAccount:
+  create: false
+  name: ""
+
+# Services map. Each entry renders a Deployment + Service.
+# Common shape:
+#   <name>:
+#     enabled: true
+#     image: { repository: ..., tag: ... }
+#     replicaCount: 2
+#     containerPort: 8000
+#     envFrom: [{ secretRef: { name: finora-sto-secrets } }]
+#     command: ["celery", "..."]              # optional, non-default entrypoint (worker)
+#     reloader: true                          # Reloader auto-rolls on Secret/CM change
+#     serviceAccount:                         # per-service IRSA (STO backend/worker pattern)
+#       create: true
+#       name: finora-sto-backend
+#       annotations:
+#         eks.amazonaws.com/role-arn: arn:aws:iam::<acct>:role/finora-sto-media-<env>
+#     probes: { startup, liveness, readiness }
+#     resources: { requests, limits }
+#     hpa: { enabled, minReplicas, maxReplicas, targetCPUUtilization }
+#
+# NOTE on Next.js NEXT_PUBLIC_*:
+#   These are *build-time* values inlined into the JS bundle at `next build`.
+#   They are NOT chart values — they live in the service repo's deploy/build pipeline
+#   (GitHub Environment Variables → docker --build-arg). Chart cannot inject them at runtime.
+services: {}
+
+ingress:
+  enabled: false
+  className: alb
+  annotations: {}
+  # rules is a list of { host, paths: [{ path, pathType, backend: { service: { name, port } } }] }
+  # For STO this is how the 4 hostnames (sto / app-sto / admin-sto / api-sto) map to backend services.
+  rules: []
+
+externalSecret:
+  enabled: false
+  refreshInterval: "30s"
+  secretStoreName: "finora-sto-secret-store"
+  targetSecretName: "finora-sto-secrets"
+
+secretStore:
+  enabled: false
+  name: "finora-sto-secret-store"
+
+networkPolicy:
+  enabled: false
+  ingressControllerNamespace: "kube-system"
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+# Migration Job (PostSync hook). STO uses Django migrate against the backend image.
+migration:
+  enabled: false
+  # Which entry in .Values.services provides the image for the migration container.
+  imageSourceService: "finora-sto-backend"
+  # Optional override; defaults to ["python", "manage.py", "migrate", "--noinput"].
+  command: []
+  envFrom: []
+  resources: {}
+
+monitoring:
+  enabled: false
+  metricsPath: /metrics
+  scrapeInterval: 30s
