@@ -43,6 +43,26 @@ serviceAccount:
 #   (GitHub Environment Variables → docker --build-arg). Chart cannot inject them at runtime.
 services: {}
 
+# ExternalName Services — alias for managed/external infra (RDS, ElastiCache, MQ).
+# Defaults are empty; each environment's values.yaml supplies real hostnames.
+# See templates/external-services.yaml for shape.
+externalServices: {}
+# Example:
+#   externalServices:
+#     finora-sto-postgresql:
+#       enabled: true
+#       host: mustex-postgres-dev.c58e2ysuka9x.ap-northeast-2.rds.amazonaws.com
+#       port: 5432
+#     redis:
+#       enabled: true
+#       host: mustex-redis-dev.lmjrar.0001.apn2.cache.amazonaws.com
+#       port: 6379
+#     rabbitmq:
+#       enabled: true
+#       host: b-ffee6b05-168b-407a-80bd-fe2b9163b61f.mq.ap-northeast-2.on.aws
+#       port: 5671
+#       extraPorts: [443]
+
 ingress:
   enabled: false
   className: alb
