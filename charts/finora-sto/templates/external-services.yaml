@@ -32,10 +32,12 @@ spec:
   type: ExternalName
   externalName: {{ required (printf "externalServices.%s.host is required" $name) $svc.host | quote }}
   ports:
-    - port: {{ required (printf "externalServices.%s.port is required" $name) $svc.port }}
+    - name: primary
+      port: {{ required (printf "externalServices.%s.port is required" $name) $svc.port }}
       protocol: TCP
-    {{- range $svc.extraPorts }}
-    - port: {{ . }}
+    {{- range $i, $p := $svc.extraPorts }}
+    - name: extra-{{ $i }}
+      port: {{ $p }}
       protocol: TCP
     {{- end }}
 {{- end }}
