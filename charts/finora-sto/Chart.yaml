@@ -2,7 +2,7 @@ apiVersion: v2
 name: finora-sto
 description: Helm chart for Finora STO services (backend, worker, multi-frontend)
 type: application
-version: 0.2.1
+version: 0.3.0
 appVersion: "1.0.0"
 keywords:
   - finora-sto

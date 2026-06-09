@@ -29,7 +29,7 @@ spec:
         reloader.stakater.com/auto: "true"
       {{- end }}
     spec:
-      serviceAccountName: {{ if and $svc.serviceAccount $svc.serviceAccount.create }}{{ $svc.serviceAccount.name | default $name }}{{ else }}{{ include "finora-sto.serviceAccountName" $ }}{{ end }}
+      serviceAccountName: {{ if and $svc.serviceAccount $svc.serviceAccount.create }}{{ $svc.serviceAccount.name | default $name }}{{ else if and $svc.serviceAccount $svc.serviceAccount.name }}{{ $svc.serviceAccount.name }}{{ else }}{{ include "finora-sto.serviceAccountName" $ }}{{ end }}
       securityContext:
         {{- mergeOverwrite (deepCopy ($.Values.securityContext.pod | default dict)) ($svc.podSecurityContext | default dict) | toYaml | nindent 8 }}
       {{- if $svc.nodeSelector }}
