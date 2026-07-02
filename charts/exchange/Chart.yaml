@@ -1,0 +1,14 @@
+apiVersion: v2
+name: exchange
+description: Reusable Helm chart for the MustEx-family exchange stack (backend api/wss, frontend, admin, cms, nuxt, celery workers, in-cluster bitcoind)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - exchange
+  - mustex
+  - mongolex
+  - philipinex
+  - gitops
+maintainers:
+  - name: DevOps

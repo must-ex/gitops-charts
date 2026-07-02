@@ -1,0 +1,119 @@
+global:
+  ecrRegistry: ""
+  esoSecretName: ""
+  esoRoleArn: ""
+  awsRegion: "ap-northeast-2"
+  domain: ""
+  acmCertificateArn: ""
+
+# Pod-level security context applied to all pods.
+# Override per service via services.<name>.podSecurityContext / .securityContext.
+securityContext:
+  pod: {}
+  container: {}
+
+# Chart-level ServiceAccount. The exchange stack typically uses per-service SAs
+# (services.<n>.serviceAccount) for IRSA, so this is opt-in (set create: false
+# unless a shared SA is needed, e.g. for the ESO SecretStore).
+serviceAccount:
+  create: false
+  name: ""
+
+# Services map. Each entry renders a Deployment (+ optional Service).
+# Common shape:
+#   <name>:
+#     enabled: true
+#     image: { repository: ..., tag: ... }
+#     replicaCount: 2
+#     containerPort: 8080
+#     envFrom: [{ secretRef: { name: mustex-secrets } }]
+#     command: ["celery", "..."]              # optional, non-default entrypoint (workers, daphne)
+#     reloader: true                          # Reloader auto-rolls on Secret/CM change
+#     serviceAccount:                         # optional per-service IRSA
+#       create: true
+#       name: mustex-cms-sa
+#       annotations:
+#         eks.amazonaws.com/role-arn: arn:aws:iam::<acct>:role/<role>
+#     probes: { startup, liveness, readiness }
+#     resources: { requests, limits }
+#     service: { enabled, port, type }        # ClusterIP svc for api/wss/frontend/admin/cms/nuxt
+#     hpa: { enabled, minReplicas, maxReplicas, targetCPUUtilizationPercentage }
+services: {}
+
+# StatefulSets map — for in-cluster stateful workloads (e.g. bitcoind).
+# Each enabled entry renders a StatefulSet + a headless Service (clusterIP: None)
+# with a per-pod PVC via volumeClaimTemplates.
+# Common shape:
+#   <name>:
+#     enabled: true
+#     image: { repository: lncm/bitcoind, tag: v24.0.1 }
+#     replicas: 1
+#     containerPort: 8332
+#     command: ["sh", "-c", "mkdir -p /data/.bitcoin && ... && bitcoind -datadir=/data/.bitcoin"]
+#     envFrom: [{ secretRef: { name: mustex-secrets } }]
+#     resources: { requests, limits }
+#     persistence:
+#       mountPath: /data/.bitcoin
+#       size: 100Gi
+#       storageClassName: gp2
+statefulsets: {}
+
+# ExternalName Services — alias for managed/external infra (RDS, ElastiCache, MQ).
+# Defaults are empty; each environment's values.yaml supplies real hostnames.
+# See templates/external-services.yaml for shape.
+externalServices: {}
+# Example:
+#   externalServices:
+#     mustex-postgresql:
+#       enabled: true
+#       host: mustex-postgres-dev.c58e2ysuka9x.ap-northeast-2.rds.amazonaws.com
+#       port: 5432
+#     mustex-redis:
+#       enabled: true
+#       host: mustex-redis-dev.lmjrar.0001.apn2.cache.amazonaws.com
+#       port: 6379
+#     mustex-rabbitmq:
+#       enabled: true
+#       host: b-xxxx.mq.ap-northeast-2.on.aws
+#       port: 5671
+#       extraPorts: [443]
+
+ingress:
+  enabled: false
+  className: alb
+  annotations: {}
+  # rules is a list of { host, paths: [{ path, pathType, backend: { service: { name, port } } }] }
+  rules: []
+
+externalSecret:
+  enabled: false
+  refreshInterval: "30s"
+  secretStoreName: "mustex-secret-store"
+  targetSecretName: "mustex-secrets"
+
+secretStore:
+  enabled: false
+  name: "mustex-secret-store"
+
+networkPolicy:
+  enabled: false
+  ingressControllerNamespace: "kube-system"
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+# Migration Job (PostSync hook). Runs Django migrate against the backend image.
+migration:
+  enabled: false
+  # Which entry in .Values.services provides the image for the migration container.
+  imageSourceService: "mustex-api"
+  # Optional override; defaults to ["python", "manage.py", "migrate", "--noinput"].
+  command: []
+  envFrom: []
+  resources: {}
+
+monitoring:
+  enabled: false
+  metricsPath: /metrics
+  scrapeInterval: 30s

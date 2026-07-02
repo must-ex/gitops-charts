@@ -13,3 +13,7 @@ consumers:
     envs:
       - path: envs/dev/values.yaml
       - path: envs/prod/values.yaml
+  - repo: must-ex/mustex-gitops
+    chart: exchange
+    envs:
+      - path: envs/dev/values.yaml

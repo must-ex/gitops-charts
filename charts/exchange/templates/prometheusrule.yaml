@@ -1,0 +1,47 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "exchange.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "exchange.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: {{ .Release.Namespace }}.infra
+      rules:
+        - alert: PodCrashLooping
+          expr: rate(kube_pod_container_status_restarts_total{namespace="{{ .Release.Namespace }}"}[15m]) * 900 > 0
+          for: 5m
+          labels:
+            severity: warning
+            namespace: {{ .Release.Namespace }}
+          annotations:
+            summary: "{{ "{{" }} $labels.pod {{ "}}" }} is crash-looping"
+            description: "Pod {{ "{{" }} $labels.pod {{ "}}" }} in namespace {{ .Release.Namespace }} has restarted {{ "{{" }} $value | humanize {{ "}}" }} times in the last 15 minutes."
+            runbook_url: "https://github.com/must-custody/custody-gitops/blob/main/docs/deployment-notice.md"
+
+        - alert: DeploymentReplicasUnavailable
+          expr: |
+            kube_deployment_status_replicas_available{namespace="{{ .Release.Namespace }}"}
+            < kube_deployment_spec_replicas{namespace="{{ .Release.Namespace }}"}
+          for: 10m
+          labels:
+            severity: warning
+            namespace: {{ .Release.Namespace }}
+          annotations:
+            summary: "{{ "{{" }} $labels.deployment {{ "}}" }} has unavailable replicas"
+            description: "Deployment {{ "{{" }} $labels.deployment {{ "}}" }} in {{ .Release.Namespace }} has {{ "{{" }} $value {{ "}}" }} available replica(s), expected {{ "{{" }} $labels.desired {{ "}}" }}."
+            runbook_url: "https://github.com/must-custody/custody-gitops/blob/main/docs/deployment-notice.md"
+
+        - alert: MigrationJobFailed
+          expr: kube_job_status_failed{namespace="{{ .Release.Namespace }}", job_name=~".*migration.*"} > 0
+          for: 1m
+          labels:
+            severity: critical
+            namespace: {{ .Release.Namespace }}
+          annotations:
+            summary: "Migration job failed in {{ .Release.Namespace }}"
+            description: "Job {{ "{{" }} $labels.job_name {{ "}}" }} in {{ .Release.Namespace }} has failed. Manual intervention required before next deploy."
+            runbook_url: "https://github.com/must-custody/custody-gitops/blob/main/docs/deployment-notice.md"
+{{- end }}

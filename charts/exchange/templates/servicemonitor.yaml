@@ -1,0 +1,20 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "exchange.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "exchange.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "exchange.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - path: {{ .Values.monitoring.metricsPath }}
+      interval: {{ .Values.monitoring.scrapeInterval }}
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+{{- end }}

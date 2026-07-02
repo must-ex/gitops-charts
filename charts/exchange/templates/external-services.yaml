@@ -1,0 +1,44 @@
+{{/*
+ExternalName Services — alias for managed/external infra (RDS, ElastiCache, MQ).
+
+Why:
+  App code uses a stable in-cluster DNS name (e.g. "mustex-postgresql").
+  The actual hostname lives here (in values), not in the app config or SM.
+  When the underlying endpoint changes (RDS rename, region move, etc.),
+  only this Service updates — the app and the SM Secret stay untouched.
+
+Shape in values:
+  externalServices:
+    <serviceName>:
+      enabled: true
+      host: <real DNS hostname>     # e.g. mustex-postgres-dev.c58e2ysuka9x.ap-northeast-2.rds.amazonaws.com
+      port: <number>                # e.g. 5432
+      extraPorts: []                # optional: list of extra ports (e.g. MQ exposes 5671 and 443)
+
+Skip any service by setting enabled: false (or omitting the key).
+*/}}
+{{- range $name, $svc := .Values.externalServices }}
+{{- if $svc.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "exchange.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: external-{{ $name }}
+spec:
+  type: ExternalName
+  externalName: {{ required (printf "externalServices.%s.host is required" $name) $svc.host | quote }}
+  ports:
+    - name: primary
+      port: {{ required (printf "externalServices.%s.port is required" $name) $svc.port }}
+      protocol: TCP
+    {{- range $i, $p := $svc.extraPorts }}
+    - name: extra-{{ $i }}
+      port: {{ $p }}
+      protocol: TCP
+    {{- end }}
+{{- end }}
+{{- end }}

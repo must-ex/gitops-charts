@@ -1,0 +1,19 @@
+Exchange stack deployed successfully.
+
+Release:   {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+Services:
+{{- range $name, $svc := .Values.services }}
+{{- if $svc.enabled }}
+  - {{ $name }} (replicas: {{ $svc.replicaCount | default 1 }})
+{{- end }}
+{{- end }}
+{{- range $name, $sts := .Values.statefulsets }}
+{{- if $sts.enabled }}
+  - {{ $name }} (statefulset, replicas: {{ $sts.replicas | default 1 }})
+{{- end }}
+{{- end }}
+
+ArgoCD manages this release. Check sync status:
+  argocd app get {{ .Release.Name }}
