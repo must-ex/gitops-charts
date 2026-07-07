@@ -17,3 +17,7 @@ consumers:
     chart: exchange
     envs:
       - path: envs/dev/values.yaml
+  - repo: must-ex/finora-ex-gitops
+    chart: finora-ex
+    envs:
+      - path: envs/stg/values.yaml

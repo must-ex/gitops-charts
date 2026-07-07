@@ -1,14 +1,12 @@
 apiVersion: v2
-name: exchange
-description: Reusable Helm chart for the MustEx-family exchange stack (backend api/wss, frontend, admin, cms, nuxt, celery workers, in-cluster bitcoind)
+name: finora-ex
+description: Reusable Helm chart for the Finora Exchange stack (backend api/wss, frontend, admin, cms, nuxt, celery workers, in-cluster bitcoind)
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "1.0.0"
 keywords:
   - exchange
-  - mustex
-  - mongolex
-  - philipinex
+  - finora
   - gitops
 maintainers:
   - name: DevOps
