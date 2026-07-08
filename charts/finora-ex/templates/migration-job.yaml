@@ -1,0 +1,37 @@
+{{- if .Values.migration.enabled }}
+{{- $src := index .Values.services .Values.migration.imageSourceService -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "exchange.name" . }}-migrate
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "exchange.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "exchange.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ if and $src.serviceAccount $src.serviceAccount.create }}{{ $src.serviceAccount.name | default .Values.migration.imageSourceService }}{{ else }}{{ include "exchange.serviceAccountName" . }}{{ end }}
+      securityContext:
+        {{- toYaml .Values.securityContext.pod | nindent 8 }}
+      containers:
+        - name: migrate
+          image: "{{ $src.image.repository }}:{{ $src.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            {{- toYaml .Values.securityContext.container | nindent 12 }}
+          command:
+            {{- toYaml (.Values.migration.command | default (list "python" "manage.py" "migrate" "--noinput")) | nindent 12 }}
+          {{- if .Values.migration.envFrom }}
+          envFrom:
+            {{- toYaml .Values.migration.envFrom | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml (.Values.migration.resources | default (dict "requests" (dict "cpu" "100m" "memory" "256Mi") "limits" (dict "cpu" "500m" "memory" "512Mi"))) | nindent 12 }}
+{{- end }}

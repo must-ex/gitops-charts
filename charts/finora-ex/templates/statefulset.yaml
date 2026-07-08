@@ -1,0 +1,143 @@
+{{/*
+StatefulSets for in-cluster stateful workloads (e.g. bitcoind).
+
+Each enabled entry under .Values.statefulsets renders:
+  - a headless Service (<name>-headless, clusterIP: None) used as the StatefulSet serviceName
+  - the StatefulSet itself, with a per-pod PVC via volumeClaimTemplates
+  - (optional) a regular ClusterIP Service <name> that other workloads connect to (RPC)
+
+bitcoind note: no readiness/liveness probes — Initial Block Download (IBD) makes the
+RPC port unresponsive for long periods and would cause false-negative restarts.
+*/}}
+{{- range $name, $sts := .Values.statefulsets }}
+{{- if $sts.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-headless
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "exchange.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  clusterIP: None
+  ports:
+    - name: rpc
+      port: {{ $sts.containerPort | default 8332 }}
+      targetPort: rpc
+      protocol: TCP
+  selector:
+    {{- include "exchange.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+{{- if not (and $sts.service (eq ($sts.service.enabled | toString) "false")) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "exchange.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  type: {{ if $sts.service }}{{ $sts.service.type | default "ClusterIP" }}{{ else }}ClusterIP{{ end }}
+  ports:
+    - name: rpc
+      port: {{ if $sts.service }}{{ $sts.service.port | default ($sts.containerPort | default 8332) }}{{ else }}{{ $sts.containerPort | default 8332 }}{{ end }}
+      targetPort: rpc
+      protocol: TCP
+  selector:
+    {{- include "exchange.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "exchange.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  serviceName: {{ $name }}-headless
+  replicas: {{ $sts.replicas | default 1 }}
+  podManagementPolicy: {{ $sts.podManagementPolicy | default "OrderedReady" }}
+  selector:
+    matchLabels:
+      {{- include "exchange.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $name }}
+  template:
+    metadata:
+      labels:
+        {{- include "exchange.labels" $ | nindent 8 }}
+        app.kubernetes.io/component: {{ $name }}
+    spec:
+      serviceAccountName: {{ if and $sts.serviceAccount $sts.serviceAccount.create }}{{ $sts.serviceAccount.name | default $name }}{{ else if and $sts.serviceAccount $sts.serviceAccount.name }}{{ $sts.serviceAccount.name }}{{ else }}{{ include "exchange.serviceAccountName" $ }}{{ end }}
+      securityContext:
+        {{- mergeOverwrite (deepCopy ($.Values.securityContext.pod | default dict)) ($sts.podSecurityContext | default dict) | toYaml | nindent 8 }}
+      {{- if $sts.nodeSelector }}
+      nodeSelector:
+        {{- toYaml $sts.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if $sts.tolerations }}
+      tolerations:
+        {{- toYaml $sts.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if $sts.affinity }}
+      affinity:
+        {{- toYaml $sts.affinity | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $name }}
+          image: "{{ $sts.image.repository }}:{{ $sts.image.tag }}"
+          imagePullPolicy: {{ $sts.imagePullPolicy | default "IfNotPresent" }}
+          securityContext:
+            {{- mergeOverwrite (deepCopy ($.Values.securityContext.container | default dict)) ($sts.securityContext | default dict) | toYaml | nindent 12 }}
+          {{- if $sts.command }}
+          command:
+            {{- toYaml $sts.command | nindent 12 }}
+          {{- end }}
+          {{- if $sts.args }}
+          args:
+            {{- toYaml $sts.args | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: rpc
+              containerPort: {{ $sts.containerPort | default 8332 }}
+              protocol: TCP
+          {{- if $sts.envFrom }}
+          envFrom:
+            {{- toYaml $sts.envFrom | nindent 12 }}
+          {{- end }}
+          {{- if $sts.env }}
+          env:
+            {{- toYaml $sts.env | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml $sts.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ $sts.persistence.mountPath | default "/data/.bitcoin" }}
+            {{- with $sts.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      {{- with $sts.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "exchange.selectorLabels" $ | nindent 10 }}
+          app.kubernetes.io/component: {{ $name }}
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ $sts.persistence.storageClassName | default "gp2" }}
+        resources:
+          requests:
+            storage: {{ $sts.persistence.size | default "100Gi" }}
+{{- end }}
+{{- end }}

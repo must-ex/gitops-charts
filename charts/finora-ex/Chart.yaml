@@ -1,0 +1,17 @@
+apiVersion: v2
+# name stays "exchange" — it feeds selectorLabels (app.kubernetes.io/name) via the
+# `exchange.name` helper, which is baked into Deployment/StatefulSet spec.selector.
+# That field is immutable once objects exist; renaming this breaks already-applied
+# workloads in finora-ex-stg (confirmed live: "field is immutable" apply errors).
+# The chart's directory (charts/finora-ex) and repo tag are renamed; this isn't.
+name: exchange
+description: Reusable Helm chart for the Finora Exchange stack (backend api/wss, frontend, admin, cms, nuxt, celery workers, in-cluster bitcoind)
+type: application
+version: 0.2.1
+appVersion: "1.0.0"
+keywords:
+  - exchange
+  - finora
+  - gitops
+maintainers:
+  - name: DevOps
