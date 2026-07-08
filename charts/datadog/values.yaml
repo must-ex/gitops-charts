@@ -14,7 +14,7 @@ datadog-operator:
 datadogAgent:
   enabled: true
   site: datadoghq.com
-  clusterName: ""
+  clusterName: "dafault-cluster-name"
   env: ""
   credentials:
     apiSecretName: "datadog-secret"
