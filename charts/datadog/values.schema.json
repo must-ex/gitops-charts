@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "required": ["global", "datadogAgent"],
+  "properties": {
+    "global": {
+      "type": "object",
+      "required": ["awsRegion"],
+      "properties": {
+        "awsRegion": { "type": "string", "minLength": 1 },
+        "esoRoleArn": { "type": "string" }
+      }
+    },
+    "datadogAgent": {
+      "type": "object",
+      "required": ["site", "clusterName"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "site": { "type": "string", "minLength": 1 },
+        "clusterName": { "type": "string" },
+        "env": { "type": "string" },
+        "credentials": {
+          "type": "object",
+          "required": ["apiSecretName", "apiSecretKey"],
+          "properties": {
+            "apiSecretName": { "type": "string", "minLength": 1 },
+            "apiSecretKey": { "type": "string", "minLength": 1 }
+          }
+        },
+        "scopedNamespaces": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "externalSecret": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "refreshInterval": { "type": "string" },
+        "secretStoreName": { "type": "string" },
+        "targetSecretName": { "type": "string" },
+        "remoteRef": {
+          "type": "object",
+          "properties": {
+            "key": { "type": "string" },
+            "property": { "type": "string" }
+          }
+        }
+      }
+    },
+    "secretStore": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "name": { "type": "string" }
+      }
+    }
+  }
+}

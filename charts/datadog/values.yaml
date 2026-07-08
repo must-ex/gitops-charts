@@ -1,0 +1,48 @@
+global:
+  awsRegion: "ap-northeast-2"
+  esoRoleArn: ""
+
+# Datadog Operator subchart (https://github.com/DataDog/helm-charts/tree/main/charts/datadog-operator).
+# Pinned in Chart.yaml (dependencies[0].version) — bump both together.
+datadog-operator:
+  installCRDs: true
+  resources:
+    requests: { cpu: "100m", memory: "100Mi" }
+    limits: { cpu: "200m", memory: "200Mi" }
+
+# Rendered as the DatadogAgent (datadoghq.com/v2alpha1) CR that the operator above reconciles.
+datadogAgent:
+  enabled: true
+  site: datadoghq.com
+  clusterName: ""
+  env: ""
+  credentials:
+    apiSecretName: "datadog-secret"
+    apiSecretKey: "api-key"
+  # Autodiscovery container-include filter (kube_namespace:<ns>) — restricts the Agent to
+  # these namespaces. Empty list = cluster-wide, no filter.
+  scopedNamespaces: []
+  orchestratorExplorer:
+    enabled: true
+  clusterChecks:
+    enabled: true
+  logCollection:
+    enabled: true
+    containerCollectAll: true
+  apm:
+    enabled: true
+
+# External Secrets Operator — syncs the Datadog API key from AWS Secrets Manager into the
+# plain k8s Secret referenced by datadogAgent.credentials above.
+externalSecret:
+  enabled: false
+  refreshInterval: "1h"
+  secretStoreName: "datadog-secret-store"
+  targetSecretName: "datadog-secret"
+  remoteRef:
+    key: ""
+    property: "DD_API_KEY"
+
+secretStore:
+  enabled: false
+  name: "datadog-secret-store"

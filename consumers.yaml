@@ -21,3 +21,7 @@ consumers:
     chart: finora-ex
     envs:
       - path: envs/stg/values.yaml
+  - repo: must-ex/infra-gitops
+    chart: datadog
+    envs:
+      - path: envs/dev/values-datadog.yaml

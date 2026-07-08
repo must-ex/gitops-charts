@@ -1,0 +1,13 @@
+Datadog deployed successfully.
+
+Release:   {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+Site:      {{ .Values.datadogAgent.site }}
+Cluster:   {{ .Values.datadogAgent.clusterName }}
+
+ArgoCD manages this release. Check sync status:
+  argocd app get datadog-dev
+
+Check Agent rollout:
+  kubectl get datadogagent -n {{ .Release.Namespace }}
+  kubectl get pods -n {{ .Release.Namespace }}

@@ -43,6 +43,17 @@ jobs:
           echo "list=$KEEP" >> $GITHUB_OUTPUT
           echo "Changed charts to validate: $KEEP"
 
+      - name: helm dependency build
+        if: steps.charts.outputs.list != ''
+        run: |
+          for chart in ${{ steps.charts.outputs.list }}; do
+            if [ -f "$chart/Chart.yaml" ] && grep -q '^dependencies:' "$chart/Chart.yaml"; then
+              echo "::group::helm dependency build $chart"
+              helm dependency build "$chart"
+              echo "::endgroup::"
+            fi
+          done
+
       - name: helm lint
         if: steps.charts.outputs.list != ''
         run: |

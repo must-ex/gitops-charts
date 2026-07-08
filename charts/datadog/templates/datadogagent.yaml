@@ -1,0 +1,38 @@
+{{- if .Values.datadogAgent.enabled }}
+apiVersion: datadoghq.com/v2alpha1
+kind: DatadogAgent
+metadata:
+  name: {{ include "datadog.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "datadog.labels" . | nindent 4 }}
+spec:
+  global:
+    clusterName: {{ required "datadogAgent.clusterName is required" .Values.datadogAgent.clusterName | quote }}
+    site: {{ .Values.datadogAgent.site }}
+    {{- if .Values.datadogAgent.env }}
+    tags:
+      - "env:{{ .Values.datadogAgent.env }}"
+    {{- end }}
+    credentials:
+      apiSecret:
+        secretName: {{ .Values.datadogAgent.credentials.apiSecretName }}
+        keyName: {{ .Values.datadogAgent.credentials.apiSecretKey }}
+    {{- if .Values.datadogAgent.scopedNamespaces }}
+    containerInclude:
+      {{- range .Values.datadogAgent.scopedNamespaces }}
+      - "kube_namespace:{{ . }}"
+      {{- end }}
+    {{- end }}
+  features:
+    orchestratorExplorer:
+      enabled: {{ .Values.datadogAgent.orchestratorExplorer.enabled }}
+    clusterChecks:
+      enabled: {{ .Values.datadogAgent.clusterChecks.enabled }}
+    logCollection:
+      enabled: {{ .Values.datadogAgent.logCollection.enabled }}
+      containerCollectAll: {{ .Values.datadogAgent.logCollection.containerCollectAll }}
+    apm:
+      instrumentation:
+        enabled: {{ .Values.datadogAgent.apm.enabled }}
+{{- end }}
