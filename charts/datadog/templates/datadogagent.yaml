@@ -19,10 +19,11 @@ spec:
         secretName: {{ .Values.datadogAgent.credentials.apiSecretName }}
         keyName: {{ .Values.datadogAgent.credentials.apiSecretKey }}
     {{- if .Values.datadogAgent.scopedNamespaces }}
-    containerInclude:
-      {{- range .Values.datadogAgent.scopedNamespaces }}
-      - "kube_namespace:{{ . }}"
-      {{- end }}
+    # DD_CONTAINER_INCLUDE — there is no dedicated global.containerInclude CRD field;
+    # this filter is only exposed via the Agent env var (space-separated filters).
+    env:
+      - name: DD_CONTAINER_INCLUDE
+        value: "{{ range $i, $ns := .Values.datadogAgent.scopedNamespaces }}{{ if $i }} {{ end }}kube_namespace:{{ $ns }}{{ end }}"
     {{- end }}
   features:
     orchestratorExplorer:
