@@ -19,8 +19,8 @@ datadogAgent:
   credentials:
     apiSecretName: "datadog-secret"
     apiSecretKey: "api-key"
-  # Autodiscovery container-include filter (kube_namespace:<ns>) — restricts the Agent to
-  # these namespaces. Empty list = cluster-wide, no filter.
+  # Autodiscovery container-include filter (kube_namespace:<ns>) — restricts the Agent's
+  # metrics AND log collection to these namespaces. Empty list = cluster-wide, no filter.
   scopedNamespaces: []
   orchestratorExplorer:
     enabled: true
