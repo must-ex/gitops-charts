@@ -105,6 +105,9 @@ jobs:
         if: steps.clone.outputs.ok == 'true'
         run: |
           if [ -d "baseline/charts/${{ matrix.chart }}" ]; then
+            if grep -q '^dependencies:' "baseline/charts/${{ matrix.chart }}/Chart.yaml" 2>/dev/null; then
+              helm dependency build "baseline/charts/${{ matrix.chart }}" || true
+            fi
             helm template preview "baseline/charts/${{ matrix.chart }}" \
               -f "consumer/${{ matrix.values_path }}" \
               > /tmp/before.yaml 2> /tmp/before.err || true
@@ -115,6 +118,9 @@ jobs:
       - name: Render PR
         if: steps.clone.outputs.ok == 'true'
         run: |
+          if grep -q '^dependencies:' "pr/charts/${{ matrix.chart }}/Chart.yaml" 2>/dev/null; then
+            helm dependency build "pr/charts/${{ matrix.chart }}"
+          fi
           helm template preview "pr/charts/${{ matrix.chart }}" \
             -f "consumer/${{ matrix.values_path }}" \
             > /tmp/after.yaml 2> /tmp/after.err

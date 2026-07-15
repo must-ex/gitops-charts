@@ -1,0 +1,16 @@
+apiVersion: v2
+name: datadog
+description: Reusable wrapper chart for the Datadog Operator + Agent (org-wide observability)
+type: application
+version: 0.1.2
+appVersion: "2.24.0"
+keywords:
+  - datadog
+  - observability
+  - gitops
+maintainers:
+  - name: DevOps
+dependencies:
+  - name: datadog-operator
+    version: 2.24.0
+    repository: https://helm.datadoghq.com
