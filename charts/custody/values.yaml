@@ -1,6 +1,6 @@
 global:
   ecrRegistry: ""
-  esoSecretName: ""
+  esoSecretName: "changeme" # required by schema; always overridden per-env
   esoRoleArn: ""
   awsRegion: "ap-northeast-2"
   domain: ""
