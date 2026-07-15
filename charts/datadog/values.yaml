@@ -31,6 +31,12 @@ datadogAgent:
     containerCollectAll: true
   apm:
     enabled: true
+  # Map of <integration>.yaml -> raw integration config (string). Each entry is mounted
+  # into the Cluster Agent's conf.d and, with `cluster_check: true` inside the config,
+  # dispatched as a cluster check. Used for endpoint-based checks (RDS postgres DBM,
+  # ElastiCache redisdb) that have no pod to autodiscover. Setting any entry also enables
+  # the k8s secret backend so configs can use ENC[k8s_secret@ns/secret/key] references.
+  clusterCheckConfigs: {}
 
 # External Secrets Operator — syncs the Datadog API key from AWS Secrets Manager into the
 # plain k8s Secret referenced by datadogAgent.credentials above.
