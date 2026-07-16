@@ -9,6 +9,11 @@ metadata:
   labels:
     {{- include "custody.labels" $ | nindent 4 }}
     app.kubernetes.io/component: {{ $name }}
+    {{- if $svc.unifiedServiceTagging }}
+    tags.datadoghq.com/env: {{ $.Values.global.environment | quote }}
+    tags.datadoghq.com/service: {{ $name | quote }}
+    tags.datadoghq.com/version: {{ $svc.image.tag | quote }}
+    {{- end }}
   {{- if $svc.reloader }}
   annotations:
     reloader.stakater.com/auto: "true"
@@ -24,6 +29,11 @@ spec:
       labels:
         {{- include "custody.labels" $ | nindent 8 }}
         app.kubernetes.io/component: {{ $name }}
+        {{- if $svc.unifiedServiceTagging }}
+        tags.datadoghq.com/env: {{ $.Values.global.environment | quote }}
+        tags.datadoghq.com/service: {{ $name | quote }}
+        tags.datadoghq.com/version: {{ $svc.image.tag | quote }}
+        {{- end }}
       {{- if $svc.reloader }}
       annotations:
         reloader.stakater.com/auto: "true"
@@ -68,9 +78,19 @@ spec:
           envFrom:
             {{- toYaml $svc.envFrom | nindent 12 }}
           {{- end }}
-          {{- if $svc.env }}
+          {{- if or $svc.env $svc.unifiedServiceTagging }}
           env:
+            {{- if $svc.unifiedServiceTagging }}
+            - name: DD_ENV
+              value: {{ $.Values.global.environment | quote }}
+            - name: DD_SERVICE
+              value: {{ $name | quote }}
+            - name: DD_VERSION
+              value: {{ $svc.image.tag | quote }}
+            {{- end }}
+            {{- if $svc.env }}
             {{- toYaml $svc.env | nindent 12 }}
+            {{- end }}
           {{- end }}
           resources:
             {{- toYaml $svc.resources | nindent 12 }}
