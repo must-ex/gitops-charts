@@ -34,6 +34,10 @@
         "clusterCheckConfigs": {
           "type": "object",
           "additionalProperties": { "type": "string" }
+        },
+        "checkSecretNames": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
         }
       }
     },

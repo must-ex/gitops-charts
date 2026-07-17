@@ -37,6 +37,11 @@ datadogAgent:
   # ElastiCache redisdb) that have no pod to autodiscover. Setting any entry also enables
   # the k8s secret backend so configs can use ENC[k8s_secret@ns/secret/key] references.
   clusterCheckConfigs: {}
+  # k8s Secret names (in the release namespace) that clusterCheckConfigs entries reference
+  # via ENC[k8s_secret@...]. Rendered into a Role/RoleBinding granting the agent and
+  # cluster-agent ServiceAccounts read access. Only used when clusterCheckConfigs is set.
+  checkSecretNames:
+    - "datadog-dbm-secret"
 
 # External Secrets Operator — syncs the Datadog API key from AWS Secrets Manager into the
 # plain k8s Secret referenced by datadogAgent.credentials above.
