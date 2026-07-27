@@ -76,6 +76,20 @@
           }
         }
       }
+    },
+    "additionalExternalSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "awsSecretName", "targetSecretName"],
+        "properties": {
+          "name":             { "type": "string", "minLength": 1 },
+          "awsSecretName":    { "type": "string", "minLength": 1 },
+          "targetSecretName": { "type": "string", "minLength": 1 },
+          "refreshInterval":  { "type": "string" },
+          "secretStoreName":  { "type": "string", "minLength": 1 }
+        }
+      }
     }
   }
 }

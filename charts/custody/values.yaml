@@ -29,6 +29,18 @@ externalSecret:
   secretStoreName: "custody-secret-store"
   targetSecretName: "custody-secrets"
 
+# Extra ExternalSecrets rendered alongside the primary one above, for values
+# that should reach only some services instead of the whole release. Each item
+# pulls one AWS Secrets Manager secret into its own Kubernetes Secret, which a
+# service then references via envFrom. Purely additive: an empty list renders
+# nothing and leaves `externalSecret` behaviour untouched.
+additionalExternalSecrets: []
+# - name: custody-api-secret          # ExternalSecret resource name
+#   awsSecretName: custody-api-secrets-dev
+#   targetSecretName: custody-api-secrets
+#   refreshInterval: "30s"            # optional, falls back to externalSecret.refreshInterval
+#   secretStoreName: custody-secret-store  # optional, falls back to externalSecret.secretStoreName
+
 secretStore:
   enabled: false
   name: "custody-secret-store"
