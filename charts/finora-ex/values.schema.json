@@ -25,6 +25,7 @@
           "replicaCount": { "type": "integer", "minimum": 0 },
           "containerPort": { "type": "integer" },
           "reloader":     { "type": "boolean" },
+          "unifiedServiceTagging": { "type": "boolean", "description": "When true, adds tags.datadoghq.com/{env,service,version} labels and DD_ENV/DD_SERVICE/DD_VERSION env vars" },
           "image": {
             "type": "object",
             "required": ["repository", "tag"],

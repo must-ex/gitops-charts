@@ -29,6 +29,7 @@ serviceAccount:
 #     envFrom: [{ secretRef: { name: mustex-secrets } }]
 #     command: ["celery", "..."]              # optional, non-default entrypoint (workers, daphne)
 #     reloader: true                          # Reloader auto-rolls on Secret/CM change
+#     unifiedServiceTagging: true             # Datadog USTagging: tags.datadoghq.com/* labels + DD_ENV/DD_SERVICE/DD_VERSION
 #     serviceAccount:                         # optional per-service IRSA
 #       create: true
 #       name: mustex-cms-sa
