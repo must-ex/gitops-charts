@@ -29,6 +29,7 @@ datadogAgent:
   logCollection:
     enabled: true
     containerCollectAll: true
+    processingRules: []
   apm:
     enabled: true
   # Map of <integration>.yaml -> raw integration config (string). Each entry is mounted

@@ -25,22 +25,31 @@ spec:
     secretBackend:
       command: "/readsecret_multiple_providers.sh"
     {{- end }}
-    {{- if .Values.datadogAgent.scopedNamespaces }}
-    # DD_CONTAINER_INCLUDE — there is no dedicated global.containerInclude CRD field;
-    # this filter is only exposed via the Agent env var (space-separated filters).
-    #
-    # DD_CONTAINER_INCLUDE/EXCLUDE alone do NOT scope log collection when
-    # logCollection.containerCollectAll is true — collect-all mode reads every
-    # container's logs regardless of those filters. DD_CONTAINER_INCLUDE_LOGS /
-    # DD_CONTAINER_EXCLUDE_LOGS are the dedicated overrides for that mode: exclude
-    # everything by default, then include only the scoped namespaces.
+    {{- if or .Values.datadogAgent.scopedNamespaces .Values.datadogAgent.logCollection.processingRules }}
     env:
+      {{- if .Values.datadogAgent.scopedNamespaces }}
+      # DD_CONTAINER_INCLUDE — there is no dedicated global.containerInclude CRD field;
+      # this filter is only exposed via the Agent env var (space-separated filters).
+      #
+      # DD_CONTAINER_INCLUDE/EXCLUDE alone do NOT scope log collection when
+      # logCollection.containerCollectAll is true — collect-all mode reads every
+      # container's logs regardless of those filters. DD_CONTAINER_INCLUDE_LOGS /
+      # DD_CONTAINER_EXCLUDE_LOGS are the dedicated overrides for that mode: exclude
+      # everything by default, then include only the scoped namespaces.
       - name: DD_CONTAINER_INCLUDE
         value: "{{ range $i, $ns := .Values.datadogAgent.scopedNamespaces }}{{ if $i }} {{ end }}kube_namespace:{{ $ns }}{{ end }}"
       - name: DD_CONTAINER_EXCLUDE_LOGS
         value: "name:.*"
       - name: DD_CONTAINER_INCLUDE_LOGS
         value: "{{ range $i, $ns := .Values.datadogAgent.scopedNamespaces }}{{ if $i }} {{ end }}kube_namespace:{{ $ns }}{{ end }}"
+      {{- end }}
+      {{- if .Values.datadogAgent.logCollection.processingRules }}
+      # Agent-global exclude_at_match/mask_sequences rules, evaluated before logs
+      # leave the node — see DEV-LOG-SCOPE.md for why this is the right level.
+      - name: DD_LOGS_CONFIG_PROCESSING_RULES
+        value: |
+          {{ .Values.datadogAgent.logCollection.processingRules | toJson }}
+      {{- end }}
     {{- end }}
   features:
     orchestratorExplorer:

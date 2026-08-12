@@ -34,6 +34,18 @@
         "clusterCheckConfigs": {
           "type": "object",
           "additionalProperties": { "type": "string" }
+        },
+        "logCollection": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "containerCollectAll": { "type": "boolean" },
+            "processingRules": {
+              "type": "array",
+              "description": "Rendered as DD_LOGS_CONFIG_PROCESSING_RULES — agent-global exclude_at_match/mask_sequences rules, evaluated before logs leave the node.",
+              "items": { "type": "object" }
+            }
+          }
         }
       }
     },
