@@ -46,6 +46,35 @@
               "items": { "type": "object" }
             }
           }
+        },
+        "apm": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "targets": {
+              "type": "array",
+              "description": "Rendered as features.apm.instrumentation.targets on the CR — per-namespace tracer config (Single Step Instrumentation), e.g. DD_DBM_PROPAGATION_MODE for DBM<->APM correlation.",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "minLength": 1 },
+                  "namespaceSelector": { "type": "object" },
+                  "ddTraceConfigs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["name", "value"],
+                      "properties": {
+                        "name": { "type": "string", "minLength": 1 },
+                        "value": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },

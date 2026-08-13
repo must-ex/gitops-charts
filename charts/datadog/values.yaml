@@ -32,6 +32,19 @@ datadogAgent:
     processingRules: []
   apm:
     enabled: true
+    # Per-target tracer config, rendered as apm.instrumentation.targets on the CR.
+    # Each target scopes ddTraceConfigs (DD_* env vars set on injected tracers) to a
+    # namespaceSelector — use this instead of editing individual app Deployments,
+    # since instrumentation here is single-step/admission-controller injected.
+    # Example (DBM<->APM correlation):
+    #   targets:
+    #     - name: finora-ex-dev-dbm
+    #       namespaceSelector:
+    #         matchNames: ["finora-ex-dev"]
+    #       ddTraceConfigs:
+    #         - name: DD_DBM_PROPAGATION_MODE
+    #           value: "full"
+    targets: []
   # Map of <integration>.yaml -> raw integration config (string). Each entry is mounted
   # into the Cluster Agent's conf.d and, with `cluster_check: true` inside the config,
   # dispatched as a cluster check. Used for endpoint-based checks (RDS postgres DBM,

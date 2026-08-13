@@ -62,6 +62,20 @@ spec:
     apm:
       instrumentation:
         enabled: {{ .Values.datadogAgent.apm.enabled }}
+        {{- if .Values.datadogAgent.apm.targets }}
+        targets:
+          {{- range .Values.datadogAgent.apm.targets }}
+          - name: {{ .name | quote }}
+            {{- if .namespaceSelector }}
+            namespaceSelector:
+              {{- toYaml .namespaceSelector | nindent 14 }}
+            {{- end }}
+            {{- if .ddTraceConfigs }}
+            ddTraceConfigs:
+              {{- toYaml .ddTraceConfigs | nindent 14 }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
   {{- if .Values.datadogAgent.clusterCheckConfigs }}
   # Integration configs with `cluster_check: true` (e.g. postgres DBM, redisdb against
   # RDS/ElastiCache endpoints) are mounted into the Cluster Agent's conf.d and dispatched
