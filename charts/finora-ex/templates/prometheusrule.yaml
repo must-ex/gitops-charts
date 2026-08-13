@@ -2,10 +2,10 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: {{ include "exchange.name" . }}
+  name: {{ include "finora-ex.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "exchange.labels" . | nindent 4 }}
+    {{- include "finora-ex.labels" . | nindent 4 }}
 spec:
   groups:
     - name: {{ .Release.Namespace }}.infra

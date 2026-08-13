@@ -18,7 +18,7 @@ metadata:
   name: {{ $name }}-headless
   namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "exchange.labels" $ | nindent 4 }}
+    {{- include "finora-ex.labels" $ | nindent 4 }}
     app.kubernetes.io/component: {{ $name }}
 spec:
   clusterIP: None
@@ -28,7 +28,7 @@ spec:
       targetPort: rpc
       protocol: TCP
   selector:
-    {{- include "exchange.selectorLabels" $ | nindent 4 }}
+    {{- include "finora-ex.selectorLabels" $ | nindent 4 }}
     app.kubernetes.io/component: {{ $name }}
 {{- if not (and $sts.service (eq ($sts.service.enabled | toString) "false")) }}
 ---
@@ -38,7 +38,7 @@ metadata:
   name: {{ $name }}
   namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "exchange.labels" $ | nindent 4 }}
+    {{- include "finora-ex.labels" $ | nindent 4 }}
     app.kubernetes.io/component: {{ $name }}
 spec:
   type: {{ if $sts.service }}{{ $sts.service.type | default "ClusterIP" }}{{ else }}ClusterIP{{ end }}
@@ -48,7 +48,7 @@ spec:
       targetPort: rpc
       protocol: TCP
   selector:
-    {{- include "exchange.selectorLabels" $ | nindent 4 }}
+    {{- include "finora-ex.selectorLabels" $ | nindent 4 }}
     app.kubernetes.io/component: {{ $name }}
 {{- end }}
 ---
@@ -58,7 +58,7 @@ metadata:
   name: {{ $name }}
   namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "exchange.labels" $ | nindent 4 }}
+    {{- include "finora-ex.labels" $ | nindent 4 }}
     app.kubernetes.io/component: {{ $name }}
 spec:
   serviceName: {{ $name }}-headless
@@ -66,15 +66,15 @@ spec:
   podManagementPolicy: {{ $sts.podManagementPolicy | default "OrderedReady" }}
   selector:
     matchLabels:
-      {{- include "exchange.selectorLabels" $ | nindent 6 }}
+      {{- include "finora-ex.selectorLabels" $ | nindent 6 }}
       app.kubernetes.io/component: {{ $name }}
   template:
     metadata:
       labels:
-        {{- include "exchange.labels" $ | nindent 8 }}
+        {{- include "finora-ex.labels" $ | nindent 8 }}
         app.kubernetes.io/component: {{ $name }}
     spec:
-      serviceAccountName: {{ if and $sts.serviceAccount $sts.serviceAccount.create }}{{ $sts.serviceAccount.name | default $name }}{{ else if and $sts.serviceAccount $sts.serviceAccount.name }}{{ $sts.serviceAccount.name }}{{ else }}{{ include "exchange.serviceAccountName" $ }}{{ end }}
+      serviceAccountName: {{ if and $sts.serviceAccount $sts.serviceAccount.create }}{{ $sts.serviceAccount.name | default $name }}{{ else if and $sts.serviceAccount $sts.serviceAccount.name }}{{ $sts.serviceAccount.name }}{{ else }}{{ include "finora-ex.serviceAccountName" $ }}{{ end }}
       securityContext:
         {{- mergeOverwrite (deepCopy ($.Values.securityContext.pod | default dict)) ($sts.podSecurityContext | default dict) | toYaml | nindent 8 }}
       {{- if $sts.nodeSelector }}
@@ -131,7 +131,7 @@ spec:
     - metadata:
         name: data
         labels:
-          {{- include "exchange.selectorLabels" $ | nindent 10 }}
+          {{- include "finora-ex.selectorLabels" $ | nindent 10 }}
           app.kubernetes.io/component: {{ $name }}
       spec:
         accessModes: ["ReadWriteOnce"]
