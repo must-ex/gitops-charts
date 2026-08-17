@@ -1,13 +1,11 @@
 apiVersion: v2
-# name stays "exchange" — it feeds selectorLabels (app.kubernetes.io/name) via the
-# `exchange.name` helper, which is baked into Deployment/StatefulSet spec.selector.
-# That field is immutable once objects exist; renaming this breaks already-applied
-# workloads in finora-ex-stg (confirmed live: "field is immutable" apply errors).
-# The chart's directory (charts/finora-ex) and repo tag are renamed; this isn't.
-name: exchange
+# Chart name is the product name. The RENDERED identity is decoupled from it via
+# .Values.nameOverride (defaulted to "exchange" in values.yaml) because
+# app.kubernetes.io/name feeds spec.selector, which is immutable on live objects.
+name: finora-ex
 description: Reusable Helm chart for the Finora Exchange stack (backend api/wss, frontend, admin, cms, nuxt, celery workers, in-cluster bitcoind)
 type: application
-version: 0.3.0
+version: 0.4.0
 appVersion: "1.0.0"
 keywords:
   - exchange

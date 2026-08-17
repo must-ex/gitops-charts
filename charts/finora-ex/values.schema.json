@@ -1,57 +1,115 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "type": "object",
-  "required": ["global"],
+  "required": [
+    "global"
+  ],
   "properties": {
     "global": {
       "type": "object",
-      "required": ["awsRegion"],
+      "required": [
+        "awsRegion"
+      ],
       "properties": {
-        "ecrRegistry":       { "type": "string" },
-        "esoSecretName":     { "type": "string" },
-        "esoRoleArn":        { "type": "string" },
-        "awsRegion":         { "type": "string", "minLength": 1 },
-        "domain":            { "type": "string" },
-        "acmCertificateArn": { "type": "string" }
+        "ecrRegistry": {
+          "type": "string"
+        },
+        "esoSecretName": {
+          "type": "string"
+        },
+        "esoRoleArn": {
+          "type": "string"
+        },
+        "awsRegion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "type": "string"
+        },
+        "acmCertificateArn": {
+          "type": "string"
+        }
       }
     },
     "services": {
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["image", "resources"],
+        "required": [
+          "image",
+          "resources"
+        ],
         "properties": {
-          "enabled":      { "type": "boolean" },
-          "replicaCount": { "type": "integer", "minimum": 0 },
-          "containerPort": { "type": "integer" },
-          "reloader":     { "type": "boolean" },
-          "unifiedServiceTagging": { "type": "boolean", "description": "When true, adds tags.datadoghq.com/{env,service,version} labels and DD_ENV/DD_SERVICE/DD_VERSION env vars" },
+          "enabled": {
+            "type": "boolean"
+          },
+          "replicaCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "containerPort": {
+            "type": "integer"
+          },
+          "reloader": {
+            "type": "boolean"
+          },
+          "unifiedServiceTagging": {
+            "type": "boolean",
+            "description": "When true, adds tags.datadoghq.com/{env,service,version} labels and DD_ENV/DD_SERVICE/DD_VERSION env vars"
+          },
           "image": {
             "type": "object",
-            "required": ["repository", "tag"],
+            "required": [
+              "repository",
+              "tag"
+            ],
             "properties": {
-              "repository": { "type": "string", "minLength": 1 },
-              "tag":        { "type": "string", "minLength": 1 }
+              "repository": {
+                "type": "string",
+                "minLength": 1
+              },
+              "tag": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           },
           "resources": {
             "type": "object",
-            "required": ["requests", "limits"],
+            "required": [
+              "requests",
+              "limits"
+            ],
             "properties": {
               "requests": {
                 "type": "object",
-                "required": ["cpu", "memory"],
+                "required": [
+                  "cpu",
+                  "memory"
+                ],
                 "properties": {
-                  "cpu":    { "type": "string" },
-                  "memory": { "type": "string" }
+                  "cpu": {
+                    "type": "string"
+                  },
+                  "memory": {
+                    "type": "string"
+                  }
                 }
               },
               "limits": {
                 "type": "object",
-                "required": ["cpu", "memory"],
+                "required": [
+                  "cpu",
+                  "memory"
+                ],
                 "properties": {
-                  "cpu":    { "type": "string" },
-                  "memory": { "type": "string" }
+                  "cpu": {
+                    "type": "string"
+                  },
+                  "memory": {
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -59,30 +117,72 @@
           "service": {
             "type": "object",
             "properties": {
-              "enabled": { "type": "boolean" },
-              "port":    { "type": "integer" },
-              "type":    { "type": "string", "enum": ["ClusterIP", "NodePort", "LoadBalancer"] }
+              "enabled": {
+                "type": "boolean"
+              },
+              "port": {
+                "type": "integer"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "ClusterIP",
+                  "NodePort",
+                  "LoadBalancer"
+                ]
+              }
             }
           },
           "hpa": {
             "type": "object",
             "properties": {
-              "enabled":                        { "type": "boolean" },
-              "minReplicas":                    { "type": "integer", "minimum": 1 },
-              "maxReplicas":                    { "type": "integer", "minimum": 1 },
-              "targetCPUUtilizationPercentage": { "type": "integer", "minimum": 1, "maximum": 100 }
+              "enabled": {
+                "type": "boolean"
+              },
+              "minReplicas": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxReplicas": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "targetCPUUtilizationPercentage": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              }
             }
           },
           "serviceAccount": {
             "type": "object",
             "properties": {
-              "create":      { "type": "boolean" },
-              "name":        { "type": "string" },
-              "annotations": { "type": "object", "additionalProperties": { "type": "string" } }
+              "create": {
+                "type": "boolean"
+              },
+              "name": {
+                "type": "string"
+              },
+              "annotations": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
             }
           },
-          "command": { "type": "array", "items": { "type": "string" } },
-          "args":    { "type": "array", "items": { "type": "string" } }
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -90,37 +190,73 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["image", "resources"],
+        "required": [
+          "image",
+          "resources"
+        ],
         "properties": {
-          "enabled":       { "type": "boolean" },
-          "replicas":      { "type": "integer", "minimum": 0 },
-          "containerPort": { "type": "integer" },
+          "enabled": {
+            "type": "boolean"
+          },
+          "replicas": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "containerPort": {
+            "type": "integer"
+          },
           "image": {
             "type": "object",
-            "required": ["repository", "tag"],
+            "required": [
+              "repository",
+              "tag"
+            ],
             "properties": {
-              "repository": { "type": "string", "minLength": 1 },
-              "tag":        { "type": "string", "minLength": 1 }
+              "repository": {
+                "type": "string",
+                "minLength": 1
+              },
+              "tag": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           },
           "resources": {
             "type": "object",
-            "required": ["requests", "limits"],
+            "required": [
+              "requests",
+              "limits"
+            ],
             "properties": {
               "requests": {
                 "type": "object",
-                "required": ["cpu", "memory"],
+                "required": [
+                  "cpu",
+                  "memory"
+                ],
                 "properties": {
-                  "cpu":    { "type": "string" },
-                  "memory": { "type": "string" }
+                  "cpu": {
+                    "type": "string"
+                  },
+                  "memory": {
+                    "type": "string"
+                  }
                 }
               },
               "limits": {
                 "type": "object",
-                "required": ["cpu", "memory"],
+                "required": [
+                  "cpu",
+                  "memory"
+                ],
                 "properties": {
-                  "cpu":    { "type": "string" },
-                  "memory": { "type": "string" }
+                  "cpu": {
+                    "type": "string"
+                  },
+                  "memory": {
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -128,25 +264,59 @@
           "persistence": {
             "type": "object",
             "properties": {
-              "mountPath":        { "type": "string" },
-              "size":             { "type": "string" },
-              "storageClassName": { "type": "string" }
+              "mountPath": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "storageClassName": {
+                "type": "string"
+              }
             }
           },
-          "command": { "type": "array", "items": { "type": "string" } },
-          "args":    { "type": "array", "items": { "type": "string" } }
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       }
     },
     "migration": {
       "type": "object",
       "properties": {
-        "enabled":            { "type": "boolean" },
-        "imageSourceService": { "type": "string", "minLength": 1 },
-        "command":            { "type": "array", "items": { "type": "string" } },
-        "envFrom":            { "type": "array" },
-        "resources":          { "type": "object" }
+        "enabled": {
+          "type": "boolean"
+        },
+        "imageSourceService": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "envFrom": {
+          "type": "array"
+        },
+        "resources": {
+          "type": "object"
+        }
       }
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Overrides the rendered name (app.kubernetes.io/name and resource name prefixes). Defaults to \"exchange\" for backward compatibility."
     }
   }
 }

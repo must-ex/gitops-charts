@@ -8,13 +8,13 @@ metadata:
   name: {{ $name }}
   namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "exchange.labels" $ | nindent 4 }}
+    {{- include "finora-ex.labels" $ | nindent 4 }}
     app.kubernetes.io/component: {{ $name }}
 spec:
   minAvailable: {{ $.Values.pdb.minAvailable | default 1 }}
   selector:
     matchLabels:
-      {{- include "exchange.selectorLabels" $ | nindent 6 }}
+      {{- include "finora-ex.selectorLabels" $ | nindent 6 }}
       app.kubernetes.io/component: {{ $name }}
 {{- end }}
 {{- end }}

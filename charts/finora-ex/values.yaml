@@ -1,3 +1,10 @@
+# Rendered-name override. Kept at "exchange" so this chart renders byte-identical to
+# finora-ex-v0.3.0 for existing consumers: app.kubernetes.io/name feeds spec.selector,
+# which Kubernetes makes immutable once a Deployment/StatefulSet exists. Changing this
+# renames live objects and will fail to apply. A brand-new environment may set it to
+# "finora-ex" from day one.
+nameOverride: exchange
+
 global:
   ecrRegistry: ""
   esoSecretName: ""
