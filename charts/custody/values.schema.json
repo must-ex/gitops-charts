@@ -74,6 +74,14 @@
               "maxReplicas":                    { "type": "integer", "minimum": 1 },
               "targetCPUUtilizationPercentage": { "type": "integer", "minimum": 1, "maximum": 100 }
             }
+          },
+          "serviceAccount": {
+            "type": "object",
+            "properties": {
+              "create":      { "type": "boolean" },
+              "name":        { "type": "string" },
+              "annotations": { "type": "object", "additionalProperties": { "type": "string" } }
+            }
           }
         }
       }
