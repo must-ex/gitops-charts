@@ -60,6 +60,16 @@ spec:
       enabled: {{ .Values.datadogAgent.logCollection.enabled }}
       containerCollectAll: {{ .Values.datadogAgent.logCollection.containerCollectAll }}
     apm:
+      # BOTH fields, deliberately. `instrumentation.enabled` governs Single Step only —
+      # whether the admission controller injects a tracer library — and does NOT stop the
+      # trace-agent. The operator defaults `features.apm.enabled` to true when unset, so
+      # rendering the inner field alone left every "apm off" env still running a receiver
+      # on 8126 (found live on finora-prod, whose values gate APM off for phase 1).
+      #
+      # One value drives both because that is how every env uses it: dev and custody-prod
+      # want receiver + injection together, finora-prod wants neither. Split into a second
+      # key only if an env needs the receiver for manually instrumented apps.
+      enabled: {{ .Values.datadogAgent.apm.enabled }}
       instrumentation:
         enabled: {{ .Values.datadogAgent.apm.enabled }}
         {{- if .Values.datadogAgent.apm.targets }}

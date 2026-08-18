@@ -31,6 +31,11 @@ datadogAgent:
     containerCollectAll: true
     processingRules: []
   apm:
+    # Drives BOTH features.apm.enabled (the trace-agent / receiver on 8126 + UDS) and
+    # features.apm.instrumentation.enabled (Single Step library injection). `false` means
+    # no receiver at all, not merely no auto-injection — the operator defaults
+    # features.apm.enabled to true when unset, so the receiver must be turned off
+    # explicitly for an "APM off" env to actually be off.
     enabled: true
     # Per-target tracer config, rendered as apm.instrumentation.targets on the CR.
     # Each target scopes ddTraceConfigs (DD_* env vars set on injected tracers) to a
