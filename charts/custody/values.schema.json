@@ -27,6 +27,7 @@
           "containerPort": { "type": "integer" },
           "reloader":     { "type": "boolean" },
           "unifiedServiceTagging": { "type": "boolean", "description": "When true, adds tags.datadoghq.com/{env,service,version} labels and DD_ENV/DD_SERVICE/DD_VERSION env vars" },
+          "apmInstrumentation": { "type": "boolean", "description": "When true, adds the admission.datadoghq.com/enabled=true pod label so the Datadog Admission Controller auto-injects the tracer library (no image rebuild)" },
           "image": {
             "type": "object",
             "required": ["repository", "tag"],

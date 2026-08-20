@@ -34,6 +34,9 @@ spec:
         tags.datadoghq.com/service: {{ $name | quote }}
         tags.datadoghq.com/version: {{ $svc.image.tag | quote }}
         {{- end }}
+        {{- if $svc.apmInstrumentation }}
+        admission.datadoghq.com/enabled: "true"
+        {{- end }}
       {{- if $svc.reloader }}
       annotations:
         reloader.stakater.com/auto: "true"
