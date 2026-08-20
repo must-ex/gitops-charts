@@ -7,7 +7,7 @@ metadata:
   name: {{ $name }}
   namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "exchange.labels" $ | nindent 4 }}
+    {{- include "finora-ex.labels" $ | nindent 4 }}
     app.kubernetes.io/component: {{ $name }}
     {{- if $svc.unifiedServiceTagging }}
     tags.datadoghq.com/env: {{ $.Values.global.environment | quote }}
@@ -22,12 +22,12 @@ spec:
   replicas: {{ $svc.replicaCount | default 1 }}
   selector:
     matchLabels:
-      {{- include "exchange.selectorLabels" $ | nindent 6 }}
+      {{- include "finora-ex.selectorLabels" $ | nindent 6 }}
       app.kubernetes.io/component: {{ $name }}
   template:
     metadata:
       labels:
-        {{- include "exchange.labels" $ | nindent 8 }}
+        {{- include "finora-ex.labels" $ | nindent 8 }}
         app.kubernetes.io/component: {{ $name }}
         {{- if $svc.unifiedServiceTagging }}
         tags.datadoghq.com/env: {{ $.Values.global.environment | quote }}
@@ -39,7 +39,7 @@ spec:
         reloader.stakater.com/auto: "true"
       {{- end }}
     spec:
-      serviceAccountName: {{ if and $svc.serviceAccount $svc.serviceAccount.create }}{{ $svc.serviceAccount.name | default $name }}{{ else if and $svc.serviceAccount $svc.serviceAccount.name }}{{ $svc.serviceAccount.name }}{{ else }}{{ include "exchange.serviceAccountName" $ }}{{ end }}
+      serviceAccountName: {{ if and $svc.serviceAccount $svc.serviceAccount.create }}{{ $svc.serviceAccount.name | default $name }}{{ else if and $svc.serviceAccount $svc.serviceAccount.name }}{{ $svc.serviceAccount.name }}{{ else }}{{ include "finora-ex.serviceAccountName" $ }}{{ end }}
       securityContext:
         {{- mergeOverwrite (deepCopy ($.Values.securityContext.pod | default dict)) ($svc.podSecurityContext | default dict) | toYaml | nindent 8 }}
       {{- if $svc.nodeSelector }}

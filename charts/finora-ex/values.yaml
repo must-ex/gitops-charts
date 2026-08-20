@@ -1,3 +1,9 @@
+# Holds app.kubernetes.io/name (and the <name>-secret / -migrate / -default-deny
+# resource prefixes) at a fixed string instead of the chart name. Empty = use the
+# chart name. Existing environments set "exchange"; they were created under the
+# chart's old name and spec.selector cannot be changed after the fact.
+nameOverride: ""
+
 global:
   ecrRegistry: ""
   esoSecretName: ""

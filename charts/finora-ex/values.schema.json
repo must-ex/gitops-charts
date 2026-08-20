@@ -3,6 +3,10 @@
   "type": "object",
   "required": ["global"],
   "properties": {
+    "nameOverride": {
+      "type": "string",
+      "description": "Replaces the chart name in app.kubernetes.io/name and in resource name prefixes. Existing environments must keep this at \"exchange\" — spec.selector is immutable."
+    },
     "global": {
       "type": "object",
       "required": ["awsRegion"],

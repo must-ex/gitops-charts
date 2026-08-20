@@ -3,10 +3,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "exchange.name" . }}-migrate
+  name: {{ include "finora-ex.name" . }}-migrate
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "exchange.labels" . | nindent 4 }}
+    {{- include "finora-ex.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
@@ -14,10 +14,10 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "exchange.labels" . | nindent 8 }}
+        {{- include "finora-ex.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
-      serviceAccountName: {{ if and $src.serviceAccount $src.serviceAccount.create }}{{ $src.serviceAccount.name | default .Values.migration.imageSourceService }}{{ else }}{{ include "exchange.serviceAccountName" . }}{{ end }}
+      serviceAccountName: {{ if and $src.serviceAccount $src.serviceAccount.create }}{{ $src.serviceAccount.name | default .Values.migration.imageSourceService }}{{ else }}{{ include "finora-ex.serviceAccountName" . }}{{ end }}
       securityContext:
         {{- toYaml .Values.securityContext.pod | nindent 8 }}
       containers:

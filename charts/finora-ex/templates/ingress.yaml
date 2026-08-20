@@ -2,10 +2,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.ingress.name | default (include "exchange.name" .) }}
+  name: {{ .Values.ingress.name | default (include "finora-ex.name" .) }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "exchange.labels" . | nindent 4 }}
+    {{- include "finora-ex.labels" . | nindent 4 }}
   {{- if .Values.ingress.annotations }}
   annotations:
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
