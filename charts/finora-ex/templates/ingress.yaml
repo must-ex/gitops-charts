@@ -1,20 +1,39 @@
-{{- if .Values.ingress.enabled }}
+{{/*
+Two shapes are supported, and they can be used together:
+
+  ingress:            a single Ingress (the original shape — unchanged)
+  ingresses:          a map of named Ingresses, for environments that need more
+                      than one ALB
+
+finora-ex prod needs the plural form: it fronts two load balancers with
+different certificates and health-check paths (the main exchange hosts, and
+www.finora.holdings for finoraglobal). Folding those into one Ingress would
+collapse them onto a single ALB and change the cert/health-check topology of a
+production endpoint, so the chart grows a map instead.
+
+Both shapes render through the same helper below, so a values file can migrate
+from `ingress:` to `ingresses:` without any change in output beyond the name.
+*/}}
+
+{{- define "finora-ex.ingressObject" -}}
+{{- $root := .root -}}
+{{- $ing := .ing -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.ingress.name | default (include "finora-ex.name" .) }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ $ing.name | default .defaultName }}
+  namespace: {{ $root.Release.Namespace }}
   labels:
-    {{- include "finora-ex.labels" . | nindent 4 }}
-  {{- if .Values.ingress.annotations }}
+    {{- include "finora-ex.labels" $root | nindent 4 }}
+  {{- if $ing.annotations }}
   annotations:
-    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    {{- toYaml $ing.annotations | nindent 4 }}
   {{- end }}
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
-  {{- if .Values.ingress.rules }}
+  ingressClassName: {{ $ing.className | default "alb" }}
+  {{- if $ing.rules }}
   rules:
-    {{- range .Values.ingress.rules }}
+    {{- range $ing.rules }}
     - host: {{ .host }}
       http:
         paths:
@@ -29,4 +48,16 @@ spec:
           {{- end }}
     {{- end }}
   {{- end }}
+{{- end }}
+
+{{- if and .Values.ingress .Values.ingress.enabled }}
+---
+{{ include "finora-ex.ingressObject" (dict "root" . "ing" .Values.ingress "defaultName" (include "finora-ex.name" .)) }}
+{{- end }}
+
+{{- range $name, $ing := .Values.ingresses }}
+{{- if $ing.enabled }}
+---
+{{ include "finora-ex.ingressObject" (dict "root" $ "ing" $ing "defaultName" $name) }}
+{{- end }}
 {{- end }}
