@@ -19,6 +19,7 @@ consumers:
     envs:
       - path: envs/dev/values.yaml
       - path: envs/stg/values.yaml
+      - path: envs/prod/values.yaml
   - repo: must-ex/infra-gitops
     chart: datadog
     envs:

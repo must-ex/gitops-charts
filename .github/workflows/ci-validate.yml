@@ -5,6 +5,13 @@ on:
     paths:
       - 'charts/**'
       - '.github/workflows/ci-validate.yml'
+      # `lint` is a required status check. A PR that touches none of the paths
+      # above never starts this workflow, so the required check stays stuck on
+      # "Expected — waiting for status" and the PR can never merge. Any file
+      # that can legitimately change on its own must be listed here. Every step
+      # below is guarded by `steps.charts.outputs.list != ''`, so a run with no
+      # changed charts skips straight through and reports success.
+      - 'consumers.yaml'
   push:
     branches: [main]
     paths:
