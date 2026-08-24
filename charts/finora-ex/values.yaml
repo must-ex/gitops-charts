@@ -85,12 +85,46 @@ externalServices: {}
 #       port: 5671
 #       extraPorts: [443]
 
+# A single Ingress. Kept as-is for envs that only need one ALB (dev, stg).
 ingress:
   enabled: false
   className: alb
   annotations: {}
   # rules is a list of { host, paths: [{ path, pathType, backend: { service: { name, port } } }] }
   rules: []
+
+# Named Ingresses, for envs that front more than one ALB. Renders one Ingress per
+# enabled entry, through the same template as `ingress:` above. The map key is the
+# default object name; set `name:` to override it.
+#
+# Use this instead of `ingress:` when the load balancers differ in certificate,
+# health-check path, or scheme — folding them into one Ingress would put every host
+# behind a single ALB.
+#
+#   ingresses:
+#     finora-ex-prod:
+#       enabled: true
+#       className: alb
+#       annotations:
+#         alb.ingress.kubernetes.io/load-balancer-name: finora-ex-prod-alb
+#         alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:...:certificate/..."
+#         alb.ingress.kubernetes.io/healthcheck-path: /api/public/v1/healthcheck
+#       rules:
+#         - host: www.finora.exchange
+#           paths:
+#             - path: /api
+#               backend: {service: {name: finora-ex-api, port: 8080}}
+#     finora-ex-prod-finoraglobal:
+#       enabled: true
+#       annotations:
+#         alb.ingress.kubernetes.io/load-balancer-name: finora-ex-prod-finoraglobal
+#         alb.ingress.kubernetes.io/healthcheck-path: /health
+#       rules:
+#         - host: www.finora.holdings
+#           paths:
+#             - path: /
+#               backend: {service: {name: finora-ex-finoraglobal, port: 8080}}
+ingresses: {}
 
 externalSecret:
   enabled: false
