@@ -24,6 +24,20 @@
         "properties": {
           "enabled":      { "type": "boolean" },
           "replicaCount": { "type": "integer", "minimum": 0 },
+          "strategy": {
+            "type": "object",
+            "description": "Deployment rollout strategy. Omit for the Kubernetes default (RollingUpdate 25%/25%). Set {type: Recreate} for singleton schedulers such as celery beat, where a rolling update runs two schedulers concurrently.",
+            "properties": {
+              "type":          { "type": "string", "enum": ["RollingUpdate", "Recreate"] },
+              "rollingUpdate": {
+                "type": "object",
+                "properties": {
+                  "maxSurge":       { "type": ["integer", "string"] },
+                  "maxUnavailable": { "type": ["integer", "string"] }
+                }
+              }
+            }
+          },
           "containerPort": { "type": "integer" },
           "reloader":     { "type": "boolean" },
           "unifiedServiceTagging": { "type": "boolean", "description": "When true, adds tags.datadoghq.com/{env,service,version} labels and DD_ENV/DD_SERVICE/DD_VERSION env vars" },

@@ -20,6 +20,24 @@ metadata:
   {{- end }}
 spec:
   replicas: {{ $svc.replicaCount | default 1 }}
+  {{- /*
+  Rollout strategy. Defaults to Kubernetes' own RollingUpdate 25%/25% when unset, which
+  is right for every replicated service.
+
+  It is WRONG for a singleton scheduler. At replicaCount 1, maxSurge 25% rounds UP to 1
+  and maxUnavailable 25% rounds DOWN to 0, so Kubernetes starts the replacement before
+  terminating the original — two pods run concurrently for the length of the readiness
+  gate plus the termination grace period. For an HTTP service that is the point. For a
+  `celery beat` scheduler holding no lock it means every periodic task due in that window
+  is dispatched twice.
+
+  Set `strategy: {type: Recreate}` on those services. It trades a short scheduling gap
+  (recoverable) for the guarantee of no overlap (a duplicated funds task may not be).
+  */}}
+  {{- with $svc.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "finora-ex.selectorLabels" $ | nindent 6 }}
