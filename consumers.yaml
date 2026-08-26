@@ -24,3 +24,10 @@ consumers:
     chart: datadog
     envs:
       - path: envs/dev/values-datadog.yaml
+      # Both prod clusters run this chart too, and each has its own values file.
+      # Registering dev alone meant impact-preview could not surface a chart change
+      # that only broke a prod env — the one place it matters most. Datadog is the
+      # only chart deployed to all three clusters, so it is also the only one where
+      # this gap existed.
+      - path: envs/custody-prod/values-datadog.yaml
+      - path: envs/finora-prod/values-datadog.yaml
